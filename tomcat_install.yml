@@ -1,0 +1,45 @@
+---
+- hosts: localhost
+  tasks:
+    - name: install java
+      become: yes
+      apt:
+        name: default-jdk
+        update_cache: yes
+
+    - name: check java
+      shell: "java -version"
+      register: javaversion
+      ignore_errors: no
+
+    - name: print
+      debug:
+        msg: "outcome : {{ javaversion }}"
+
+    - name: Download and install tomcat
+      unarchive:
+         src: "https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.56/bin/apache-tomcat-9.0.56.tar.gz"
+         dest: "/home/ubuntu/tomcat"
+         remote_src: yes
+      register: tci
+
+    - name: stop tomcat
+      shell: "/home/ubuntu/tomcat/apache-tomcat-9.0.56/bin/shutdown.sh"
+      register: tcstop
+      ignore_errors: yes
+    
+    - name: Download jenkins
+      shell: "wget https://get.jenkins.io/war-stable/latest/jenkins.war; mv jenkins.war /home/ubuntu/tomcat/apache-tomcat-9.0.56/webapps/"
+      register: jenkins
+
+    - name: print
+      debug:
+        msg: "outcome : {{ tci }} {{ tcstop }} and {{ jenkins }}"  
+
+    - name: start tomcat
+      shell: "/home/ubuntu/tomcat/apache-tomcat-9.0.56/bin/startup.sh"
+      register: tcstart
+    
+    - name: print
+      debug:
+        msg: "outcome : {{ tcstart }}"
